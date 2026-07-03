@@ -132,7 +132,13 @@ class AnsiDecoder:
         Yields:
             Text: Marked up Text.
         """
-        for line in re.split(r"(?<=\n)", terminal_text):
+        # Normalize Windows line endings to "\n" so they survive the split
+        # below the same way bare "\n" does. The lookbehind split only fires
+        # after "\n", so a "\r\n" sequence would otherwise leave the "\r"
+        # attached to the previous line and get dropped by the
+        # `rsplit("\r", 1)[-1]` inside `decode_line`.
+        text = terminal_text.replace("\r\n", "\n")
+        for line in re.split(r"(?<=\n)", text):
             yield self.decode_line(line.rstrip("\n"))
 
     def decode_line(self, line: str) -> Text:

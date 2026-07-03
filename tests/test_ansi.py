@@ -102,3 +102,18 @@ def test_decode_newlines():
     assert Text.from_ansi("Hello\nWorld\n").plain == "Hello\nWorld\n"
     assert Text.from_ansi("Hello\nWorld\n\n").plain == "Hello\nWorld\n\n"
     assert Text.from_ansi("\nHello\nWorld\n\n").plain == "\nHello\nWorld\n\n"
+
+
+def test_decode_crlf_preserved():
+    """CRLF line endings should be normalized to LF, not dropped.
+
+    Regression test for https://github.com/Textualize/rich/issues/4090
+    The lookbehind split in `AnsiDecoder.decode` only fires after ``\\n``,
+    so a Windows-style ``\\r\\n`` would otherwise leave the ``\\r`` attached
+    to the previous line, which `decode_line` then strips via
+    `rsplit("\\r", 1)[-1]`, dropping the line's content entirely.
+    """
+    assert Text.from_ansi("Hello\r\n").plain == "Hello\n"
+    assert Text.from_ansi("\r\n").plain == "\n"
+    assert Text.from_ansi("Hello\r\nWorld\r\n").plain == "Hello\nWorld\n"
+    assert Text.from_ansi("\r\nHello\r\nWorld").plain == "\nHello\nWorld"
