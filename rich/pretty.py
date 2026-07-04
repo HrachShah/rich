@@ -46,6 +46,14 @@ from .jupyter import JupyterMixin, JupyterRenderable
 from .measure import Measurement
 from .text import Text
 
+# Sentinel attribute name used to detect classes that auto-vivify attribute access.
+# The name is intentionally unusual so that it is unlikely to collide with a
+# real attribute on a user object, and it is prefixed with an underscore so it
+# does not show up in public attribute listings. The traversal code below
+# setattrs this on the object, checks for the new attribute, and then delattrs
+# it so that user objects are not mutated by pretty-printing.
+_FAKE_ATTRIBUTE_TEST = "_rich_does_not_exist_42"
+
 if TYPE_CHECKING:
     from .console import (
         Console,
@@ -559,9 +567,10 @@ class _Line:
 
 
 def _is_namedtuple(obj: Any) -> bool:
-    """Checks if an object is most likely a namedtuple. It is possible
-    to craft an object that passes this check and isn't a namedtuple, but
-    there is only a minuscule chance of this happening unintentionally.
+    """Checks if an object is most likely a namedtuple. We look up ``_fields``
+    by walking the type's MRO (using the type's own ``__dict__`` for each
+    entry) so that classes which auto-vivify attribute access do not pass
+    the test.
 
     Args:
         obj (Any): The object to test
@@ -570,7 +579,13 @@ def _is_namedtuple(obj: Any) -> bool:
         bool: True if the object is a namedtuple. False otherwise.
     """
     try:
-        fields = getattr(obj, "_fields", None)
+        fields = None
+        for klass in type(obj).__mro__:
+            fields = klass.__dict__.get("_fields")
+            if fields is not None:
+                break
+        if fields is None:
+            return False
     except Exception:
         # Being very defensive - if we cannot get the attr then its not a namedtuple
         return False
@@ -646,12 +661,33 @@ def traverse(
                 else:
                     yield arg
 
+        fake_attributes = False
         try:
-            fake_attributes = hasattr(
-                obj, "awehoi234_wdfjwljet234_234wdfoijsdfmmnxpi492"
-            )
-        except Exception:
-            fake_attributes = False
+            # Some classes auto-vivify attribute access: any ``getattr`` for
+            # unknown name silently succeeds and (in some libs) even adds the
+            # attribute to the instance. We probe by setting a sentinel name
+            # ourselves and then asking whether the object now reports it as
+            # an attribute. The sentinel is always removed on the way out so
+            # that pretty-printing never leaves state behind on the objects
+            # it inspects. The sentinel name is namespaced with ``_rich_``
+            # so that any leftover value is at least recognisable as ours.
+            try:
+                object.__setattr__(obj, _FAKE_ATTRIBUTE_TEST, None)
+                fake_attributes = _FAKE_ATTRIBUTE_TEST not in getattr(
+                    obj, "__dict__", {}
+                )
+            except Exception:
+                # Frozen attrs classes, slots-based classes, and other
+                # restrictive objects reject the setattr; treat that as
+                # "no fake attrs".
+                fake_attributes = False
+        finally:
+            try:
+                object.__delattr__(obj, _FAKE_ATTRIBUTE_TEST)
+            except Exception:
+                pass
+            if _FAKE_ATTRIBUTE_TEST in getattr(obj, "__dict__", {}):
+                del obj.__dict__[_FAKE_ATTRIBUTE_TEST]
 
         rich_repr_result: Optional[RichReprResult] = None
         if not fake_attributes:

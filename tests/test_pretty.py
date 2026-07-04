@@ -14,6 +14,11 @@ from rich.measure import Measurement
 from rich.pretty import Node, Pretty, _ipy_display_hook, install, pprint, pretty_repr
 from rich.text import Text
 
+try:
+    from rich.pretty import _FAKE_ATTRIBUTE_TEST  # type: ignore[attr-defined]
+except ImportError:  # pragma: no cover - pre-fix code path
+    _FAKE_ATTRIBUTE_TEST = "_rich_does_not_exist_42"
+
 skip_py38 = pytest.mark.skipif(
     sys.version_info.minor == 8 and sys.version_info.major == 3,
     reason="rendered differently on py3.8",
@@ -757,3 +762,91 @@ def test_dataclass_no_attribute() -> None:
     expected = "BadDataclass()\n"
     result = capture.get()
     assert result == expected
+
+
+def test_pretty_does_not_leak_fake_attribute_sentinel() -> None:
+    """Pretty-printing must never leave its internal sentinel attribute
+    behind on the objects it inspects.
+
+    Regression test for https://github.com/Textualize/rich/issues/4183 — the
+    pre-fix implementation used ``hasattr(obj, "awehoi234_wdfjwljet234_...")``
+    to detect classes that auto-vivify attribute access. When the test
+    returned True (because the class auto-vivifies), the attribute was never
+    actually written, so no leak happened. But the implementation was
+    surprising to debug, and any class that legitimately stored that name
+    would end up with a leftover attribute from a rich call.
+    """
+    from dataclasses import dataclass, field
+
+    @dataclass
+    class Holder:
+        x: int = 0
+
+    obj = Holder(x=42)
+    pretty_repr(obj)
+    assert not hasattr(obj, "_rich_does_not_exist_42")
+    # Also no leaked keys in the actual __dict__.
+    assert "_rich_does_not_exist_42" not in getattr(obj, "__dict__", {})
+
+
+def test_pretty_handles_auto_vivifying_attribute_access() -> None:
+    """A class with a permissive ``__getattr__`` (auto-vivification) should
+    be treated as having no ``__rich_repr__`` so that the regular class-name
+    repr is used.
+    """
+
+    class AutoVivify:
+        def __getattr__(self, name):
+            # Match attrs-style auto-vivify: return a value and pretend the
+            # attribute exists, but do NOT store it.
+            return f"fake-{name}"
+
+        def __repr__(self) -> str:
+            return "AutoVivify()"
+
+    obj = AutoVivify()
+    result = pretty_repr(obj)
+    assert "AutoVivify" in result
+    # The auto-vivified "fake-__rich_repr__" must not appear in the output.
+    assert "fake-" not in result
+    # The detection probe must not leave the sentinel sitting in
+    # ``__dict__`` on the user object (the point of issue #4183).
+    assert _FAKE_ATTRIBUTE_TEST not in getattr(obj, "__dict__", {})
+
+
+def test_is_namedtuple_rejects_auto_vivifying_classes() -> None:
+    """A class with a permissive ``__getattr__`` that returns a tuple for
+    ``_fields`` must NOT be classified as a namedtuple.
+    """
+
+    class FakeNamedTuple:
+        def __getattr__(self, name):
+            if name == "_fields":
+                return ("a", "b")
+            raise AttributeError(name)
+
+        def __repr__(self) -> str:
+            return "FakeNamedTuple()"
+
+    obj = FakeNamedTuple()
+    from rich.pretty import _is_namedtuple
+
+    assert _is_namedtuple(obj) is False
+
+
+def test_attrs_object_still_renders_attrs_repr() -> None:
+    """Sanity check: real attrs classes should still go through the attrs
+    branch of the pretty-printer.
+    """
+    from rich.pretty import _is_attr_object, pretty_repr
+
+    @attr.s
+    class Pt:
+        x = attr.ib()
+        y = attr.ib()
+
+    pt = Pt(1, 2)
+    assert _is_attr_object(pt)
+    result = pretty_repr(pt)
+    assert "x=1" in result
+    assert "y=2" in result
