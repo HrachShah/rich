@@ -92,6 +92,21 @@ def test_set_shape():
     ]
 
 
+def test_set_shape_truncates_to_height():
+    # height is shorter than the input; the extra input lines must be
+    # dropped rather than slipping through adjust_line_length.
+    lines = [
+        [Segment("aaaa"), Segment("bbbb")],
+        [Segment("cccc"), Segment("dddd")],
+        [Segment("eeee"), Segment("ffff")],
+    ]
+    result = Segment.set_shape(lines, 10, height=2)
+    assert result == [
+        [Segment("aaaa"), Segment("bbbb"), Segment("  ")],
+        [Segment("cccc"), Segment("dddd"), Segment("  ")],
+    ]
+
+
 def test_simplify():
     assert list(
         Segment.simplify([Segment("Hello"), Segment(" "), Segment("World!")])

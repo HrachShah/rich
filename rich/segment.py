@@ -452,7 +452,7 @@ class Segment(NamedTuple):
         adjust_line_length = cls.adjust_line_length
         shaped_lines = lines[:_height]
         shaped_lines[:] = [
-            adjust_line_length(line, width, style=style) for line in lines
+            adjust_line_length(line, width, style=style) for line in shaped_lines
         ]
         if len(shaped_lines) < _height:
             shaped_lines.extend([blank] * (_height - len(shaped_lines)))
