@@ -147,7 +147,7 @@ class Box:
             cross = self.foot_row_cross
             right = self.foot_row_right
         else:
-            raise ValueError("level must be 'head', 'row' or 'foot'")
+            raise ValueError("level must be 'head', 'row', 'foot' or 'mid'")
 
         parts: List[str] = []
         append = parts.append

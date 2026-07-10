@@ -42,6 +42,22 @@ def test_get_row():
     with pytest.raises(ValueError):
         ROUNDED.get_row(widths=[1, 2, 3], level="FOO")
 
+    # The error message should list every supported level, including 'mid'
+    # (which is documented in the Literal[...] type annotation but was missing
+    # from the error string).
+    with pytest.raises(ValueError, match="head"):
+        ROUNDED.get_row(widths=[1, 2, 3], level="FOO")
+    with pytest.raises(ValueError, match="row"):
+        ROUNDED.get_row(widths=[1, 2, 3], level="FOO")
+    with pytest.raises(ValueError, match="foot"):
+        ROUNDED.get_row(widths=[1, 2, 3], level="FOO")
+    with pytest.raises(ValueError, match="mid"):
+        ROUNDED.get_row(widths=[1, 2, 3], level="FOO")
+
+    # The 'mid' level is a real value the function accepts.
+    mid_row = ROUNDED.get_row(widths=[2, 1], level="mid")
+    assert "│" in mid_row
+
 
 def test_get_bottom():
     bottom = HEAVY.get_bottom(widths=[1, 2, 3])
