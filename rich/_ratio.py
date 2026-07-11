@@ -120,15 +120,18 @@ def ratio_distribute(
     if minimums:
         ratios = [ratio if _min else 0 for ratio, _min in zip(ratios, minimums)]
     total_ratio = sum(ratios)
-    assert total_ratio > 0, "Sum of ratios must be > 0"
-
-    total_remaining = total
-    distributed_total: List[int] = []
-    append = distributed_total.append
     if minimums is None:
         _minimums = [0] * len(ratios)
     else:
         _minimums = minimums
+    if total_ratio <= 0:
+        # Nothing to distribute: all ratios collapsed to zero (e.g. every column
+        # has zero width). Return the minimums so the sum still reflects the
+        # contract of the function for downstream callers that rely on it.
+        return list(_minimums)
+    total_remaining = total
+    distributed_total: List[int] = []
+    append = distributed_total.append
     for ratio, minimum in zip(ratios, _minimums):
         if total_ratio > 0:
             distributed = max(minimum, ceil(ratio * total_remaining / total_ratio))
