@@ -1133,3 +1133,18 @@ def test_tty_compatible() -> None:
     assert not console.is_terminal
     # Should not have auto-detected
     assert not console.file.called_isatty
+
+
+def test_line_rejects_negative_count() -> None:
+    """A negative count should raise a clean ValueError rather than silently
+    producing no output under ``python -O`` (where the previous assert would
+    be stripped)."""
+    console = Console()
+    with pytest.raises(ValueError, match="count must be >= 0"):
+        console.line(-1)
+
+
+def test_line_accepts_zero_count() -> None:
+    """count=0 is a valid no-op and should not raise."""
+    console = Console()
+    console.line(0)

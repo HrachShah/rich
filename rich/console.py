@@ -1140,7 +1140,11 @@ class Console:
             count (int, optional): Number of new lines. Defaults to 1.
         """
 
-        assert count >= 0, "count must be >= 0"
+        if count < 0:
+            raise ValueError(
+                f"count must be >= 0, got {count!r}. Use Console.print with an empty"
+                " string or omit the call to skip emitting newlines."
+            )
         self.print(NewLine(count))
 
     def clear(self, home: bool = True) -> None:

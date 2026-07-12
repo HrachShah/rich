@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed `ratio_distribute` raising `AssertionError` (silently under `python -O`) when every ratio collapsed to zero; it now returns the minimums when provided, or zeros otherwise, instead of leaving callers to walk into a divide-by-zero branch.
+- Fixed `Console.line` raising `AssertionError` (silently producing zero output under `python -O`) when called with a negative `count`; it now raises a `ValueError` naming the actual value, matching the documented "count must be >= 0" contract.
 
 ## [15.0.0] - 2026-04-12
 
