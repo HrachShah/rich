@@ -102,3 +102,15 @@ def test_decode_newlines():
     assert Text.from_ansi("Hello\nWorld\n").plain == "Hello\nWorld\n"
     assert Text.from_ansi("Hello\nWorld\n\n").plain == "Hello\nWorld\n\n"
     assert Text.from_ansi("\nHello\nWorld\n\n").plain == "\nHello\nWorld\n\n"
+
+
+def test_decode_crlf_line_endings():
+    """Test CRLF line endings round-trip to LF.
+
+    Regression test for https://github.com/Textualize/rich/issues/4090
+    """
+    assert Text.from_ansi("Hello\r\nWorld\r\n").plain == "Hello\nWorld\n"
+    assert (
+        Text.from_ansi("\r\nHello\r\nWorld\r\n").plain == "\nHello\nWorld\n"
+    )
+    assert Text.from_ansi("Hello\r\n\r\nWorld\r\n").plain == "Hello\n\nWorld\n"
