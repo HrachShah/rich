@@ -48,10 +48,12 @@ class FileProxy(io.TextIOBase):
         return len(text)
 
     def flush(self) -> None:
-        output = "".join(self.__buffer)
-        if output:
+        if self.__buffer:
+            output = Text("\n").join(
+                self.__ansi_decoder.decode_line(line) for line in self.__buffer
+            )
             self.__console.print(output)
-        del self.__buffer[:]
+            del self.__buffer[:]
 
     def fileno(self) -> int:
         return self.__file.fileno()

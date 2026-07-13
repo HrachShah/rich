@@ -37,6 +37,30 @@ def test_new_lines():
     assert file.getvalue() == "-\n-\n"
 
 
+def test_flush_decodes_pending_ansi():
+    """flush() must run the pending buffer through the ANSI decoder so that
+    partial escape sequences that never reached write()'s newline path are
+    rendered to the console as real ANSI rather than left as raw text.
+
+    Pre-fix the buffer was joined with '' and passed to console.print() as a
+    string, which the decoder re-rendered and produced duplicated ESC bytes.
+    """
+    file = io.StringIO()
+    console = Console(
+        file=file, force_terminal=True, width=80, color_system="truecolor"
+    )
+    file_proxy = FileProxy(console, file)
+    file_proxy.write("ABC\033[31mRED\033[0mEND")
+    assert file.getvalue() == ""
+    file_proxy.flush()
+    # The escape sequences must round-trip through console.print as single
+    # \x1b[...m sequences, not be mangled.
+    assert file.getvalue() == "ABC\x1b[31mRED\x1b[0mEND\n"
+    # An empty flush after the buffer is drained must not append anything.
+    file_proxy.flush()
+    assert file.getvalue() == "ABC\x1b[31mRED\x1b[0mEND\n"
+
+
 def test_isatty():
     """Check isatty is proxied
 
