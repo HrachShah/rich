@@ -62,6 +62,8 @@ class ProgressBar(JupyterMixin):
         """Calculate percentage complete."""
         if self.total is None:
             return None
+        if self.total == 0:
+            return 100.0
         completed = (self.completed / self.total) * 100.0
         completed = min(100, max(0.0, completed))
         return completed

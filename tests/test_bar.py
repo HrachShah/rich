@@ -48,8 +48,8 @@ def test_measure():
 
 
 def test_zero_total():
-    # Shouldn't throw zero division error
     bar = ProgressBar(total=0)
+    assert bar.percentage_completed == 100.0
     render(bar)
 
 
