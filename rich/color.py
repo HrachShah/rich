@@ -480,9 +480,9 @@ class Color(NamedTuple):
                 raise ColorParseError(
                     f"color components must be integers in {original_color!r}"
                 ) from error
-            if not all(component <= 255 for component in triplet):
+            if not all(0 <= component <= 255 for component in triplet):
                 raise ColorParseError(
-                    f"color components must be <= 255 in {original_color!r}"
+                    f"color components must be between 0 and 255 in {original_color!r}"
                 )
             return cls(color, ColorType.TRUECOLOR, triplet=triplet)
 
