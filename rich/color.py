@@ -474,10 +474,15 @@ class Color(NamedTuple):
                     f"expected three components in {original_color!r}"
                 )
             red, green, blue = components
-            triplet = ColorTriplet(int(red), int(green), int(blue))
-            if not all(component <= 255 for component in triplet):
+            try:
+                triplet = ColorTriplet(int(red), int(green), int(blue))
+            except ValueError as error:
                 raise ColorParseError(
-                    f"color components must be <= 255 in {original_color!r}"
+                    f"color components must be integers in {original_color!r}"
+                ) from error
+            if not all(0 <= component <= 255 for component in triplet):
+                raise ColorParseError(
+                    f"color components must be between 0 and 255 in {original_color!r}"
                 )
             return cls(color, ColorType.TRUECOLOR, triplet=triplet)
 

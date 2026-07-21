@@ -103,9 +103,17 @@ def test_parse_error() -> None:
     with pytest.raises(ColorParseError):
         Color.parse("rgb(999,0,0)")
     with pytest.raises(ColorParseError):
+        Color.parse("rgb(-1,0,0)")
+    with pytest.raises(ColorParseError):
+        Color.parse("rgb(1.5,0,0)")
+    with pytest.raises(ColorParseError):
         Color.parse("rgb(0,0)")
     with pytest.raises(ColorParseError):
         Color.parse("rgb(0,0,0,0)")
+    with pytest.raises(ColorParseError):
+        Color.parse("rgb(,0,0)")
+    with pytest.raises(ColorParseError):
+        Color.parse("rgb(0, 0, nope)")
     with pytest.raises(ColorParseError):
         Color.parse("nosuchcolor")
     with pytest.raises(ColorParseError):
