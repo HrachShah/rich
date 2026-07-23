@@ -1,7 +1,7 @@
 import pytest
 from typing import NamedTuple, Optional
 
-from rich._ratio import ratio_reduce, ratio_resolve
+from rich._ratio import ratio_distribute, ratio_reduce, ratio_resolve
 
 
 class Edge(NamedTuple):
@@ -23,6 +23,11 @@ class Edge(NamedTuple):
 )
 def test_ratio_reduce(total, ratios, maximums, values, result):
     assert ratio_reduce(total, ratios, maximums, values) == result
+
+
+def test_ratio_distribute_rejects_mismatched_minimums():
+    with pytest.raises(ValueError, match="same length"):
+        ratio_distribute(10, [1, 1], [1])
 
 
 def test_ratio_resolve():
