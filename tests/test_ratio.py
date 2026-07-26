@@ -25,6 +25,17 @@ def test_ratio_reduce(total, ratios, maximums, values, result):
     assert ratio_reduce(total, ratios, maximums, values) == result
 
 
+@pytest.mark.parametrize(
+    ("total", "ratios", "minimums", "expected"),
+    [
+        (10, [0, 0], None, [0, 0]),
+        (10, [0, 0], [2, 3], [2, 3]),
+    ],
+)
+def test_ratio_distribute_handles_zero_ratios(total, ratios, minimums, expected):
+    assert ratio_distribute(total, ratios, minimums) == expected
+
+
 def test_ratio_distribute_rejects_mismatched_minimums():
     with pytest.raises(ValueError, match="same length"):
         ratio_distribute(10, [1, 1], [1])
