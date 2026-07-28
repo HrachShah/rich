@@ -36,6 +36,11 @@ def test_ratio_distribute_handles_zero_ratios(total, ratios, minimums, expected)
     assert ratio_distribute(total, ratios, minimums) == expected
 
 
+def test_ratio_distribute_returns_empty_for_empty_ratios():
+    assert ratio_distribute(10, []) == []
+    assert ratio_distribute(10, [], []) == []
+
+
 def test_ratio_distribute_rejects_mismatched_minimums():
     with pytest.raises(ValueError, match="same length"):
         ratio_distribute(10, [1, 1], [1])

@@ -119,6 +119,8 @@ def ratio_distribute(
     """
     if minimums is not None and len(minimums) != len(ratios):
         raise ValueError("ratios and minimums must have the same length")
+    if not ratios:
+        return []
     if minimums:
         ratios = [ratio if _min else 0 for ratio, _min in zip(ratios, minimums)]
     total_ratio = sum(ratios)
