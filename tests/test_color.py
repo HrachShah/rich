@@ -87,6 +87,12 @@ def test_from_rgb() -> None:
     )
 
 
+def test_from_rgb_rejects_out_of_range_components() -> None:
+    for components in [(-1, 0, 0), (0, 256, 0), (0, 0, 256)]:
+        with pytest.raises(ColorParseError):
+            Color.from_rgb(*components)
+
+
 def test_from_ansi() -> None:
     assert Color.from_ansi(1) == Color("color(1)", ColorType.STANDARD, 1)
 

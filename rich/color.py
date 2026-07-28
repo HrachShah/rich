@@ -417,7 +417,10 @@ class Color(NamedTuple):
         Returns:
             Color: A new color object.
         """
-        return cls.from_triplet(ColorTriplet(int(red), int(green), int(blue)))
+        components = (int(red), int(green), int(blue))
+        if not all(0 <= component <= 255 for component in components):
+            raise ColorParseError("RGB components must be between 0 and 255")
+        return cls.from_triplet(ColorTriplet(*components))
 
     @classmethod
     def default(cls) -> "Color":
