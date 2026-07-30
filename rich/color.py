@@ -387,6 +387,8 @@ class Color(NamedTuple):
         Returns:
             Color: A new Color instance.
         """
+        if not 0 <= number <= 255:
+            raise ColorParseError("ANSI color number must be between 0 and 255")
         return cls(
             name=f"color({number})",
             type=(ColorType.STANDARD if number < 16 else ColorType.EIGHT_BIT),

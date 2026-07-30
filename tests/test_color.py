@@ -97,6 +97,12 @@ def test_from_ansi() -> None:
     assert Color.from_ansi(1) == Color("color(1)", ColorType.STANDARD, 1)
 
 
+def test_from_ansi_rejects_out_of_range_numbers() -> None:
+    for number in (-1, 256):
+        with pytest.raises(ColorParseError):
+            Color.from_ansi(number)
+
+
 def test_default() -> None:
     assert Color.default() == Color("default", ColorType.DEFAULT, None, None)
 
