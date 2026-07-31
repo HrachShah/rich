@@ -46,6 +46,14 @@ def test_ratio_distribute_rejects_mismatched_minimums():
         ratio_distribute(10, [1, 1], [1])
 
 
+def test_ratio_distribute_rejects_negative_values():
+    with pytest.raises(ValueError, match="ratios must be greater than or equal to zero"):
+        ratio_distribute(10, [-1, 1])
+        ratio_distribute(10, [1, -1])
+    with pytest.raises(ValueError, match="minimums must be greater than or equal to zero"):
+        ratio_distribute(10, [1, 1], [0, -1])
+
+
 def test_ratio_resolve():
     assert ratio_resolve(100, []) == []
     assert ratio_resolve(100, [Edge(size=100), Edge(ratio=1)]) == [100, 1]

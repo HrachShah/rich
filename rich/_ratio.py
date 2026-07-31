@@ -119,6 +119,10 @@ def ratio_distribute(
     """
     if minimums is not None and len(minimums) != len(ratios):
         raise ValueError("ratios and minimums must have the same length")
+    if any(ratio < 0 for ratio in ratios):
+        raise ValueError("ratios must be greater than or equal to zero")
+    if minimums is not None and any(minimum < 0 for minimum in minimums):
+        raise ValueError("minimums must be greater than or equal to zero")
     if not ratios:
         return []
     if minimums:
