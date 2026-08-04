@@ -56,3 +56,16 @@ def test_ratio_resolve():
         37,
         37,
     ]
+
+
+@pytest.mark.parametrize("ratios", [[1.5], [True], ["1"]])
+def test_ratio_distribute_rejects_non_integer_ratios(ratios):
+    with pytest.raises(TypeError, match="ratios must be integers"):
+        from rich._ratio import ratio_distribute
+        ratio_distribute(10, ratios)
+
+
+def test_ratio_distribute_rejects_non_integer_minimums():
+    from rich._ratio import ratio_distribute
+    with pytest.raises(TypeError, match="minimums must be integers"):
+        ratio_distribute(10, [1], [1.5])
