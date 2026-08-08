@@ -117,6 +117,8 @@ def ratio_distribute(
     Returns:
         List[int]: A list of integers guaranteed to sum to total.
     """
+    if total < 0:
+        raise ValueError("total must be greater than or equal to zero")
     if minimums is not None and len(minimums) != len(ratios):
         raise ValueError("ratios and minimums must have the same length")
     if any(isinstance(ratio, bool) or not isinstance(ratio, int) for ratio in ratios):

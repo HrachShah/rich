@@ -69,3 +69,10 @@ def test_ratio_distribute_rejects_non_integer_minimums():
     from rich._ratio import ratio_distribute
     with pytest.raises(TypeError, match="minimums must be integers"):
         ratio_distribute(10, [1], [1.5])
+
+
+def test_ratio_distribute_rejects_negative_totals():
+    from rich._ratio import ratio_distribute
+
+    with pytest.raises(ValueError, match="total must be greater than or equal to zero"):
+        ratio_distribute(-1, [1])
